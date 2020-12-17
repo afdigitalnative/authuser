@@ -1,0 +1,82 @@
+{#=== Options ===========================================================================================================#}
+
+{% set attr_opt = {
+    class:        field.class|default('form-control'),
+    name_id:      key,
+    required:     field.required|default(false),
+    readonly:     field.readonly|default(false)
+}%}
+
+{% set values = fetch_auth_users() %}
+
+{#=== FIELDSET =======================================================================================================#}
+
+{% set option = {
+info:      field.info|default(''),
+label:     field.label,
+multiple:  (field.multiple is defined and field.multiple),
+required:  field.required|default(false),
+values:    [],
+default:   field.default|default(null),
+} %}
+
+{# Get the current selection. Either a single value, or an array. #}
+{% set selection = context.content.get(contentkey)|default(option.default) %}
+{% if selection is not iterable %}
+    {% set selection = [ selection ] %}
+{% endif %}
+
+{# If the current selection contains an existing id, we must use _only_ the id, and not accept a fallback. #}
+{% set onlyids = selection|first in values|keys %}
+
+{# Build the select options array #}
+{% set options = [] %}
+{% for item in values %}
+    {% set options = options|merge([{
+    value:     item.guid,
+    text:      item.displayname,
+    selected:  item.guid in selection,
+    }]) %}
+{% endfor %}
+
+{# BUIC options #}
+{% set buic_opt_select = {
+'all':       option.multiple,
+'clear':     true,
+'id':        key,
+'multiple':  option.multiple,
+'name':      option.multiple ? name ~ '[]' : name,
+'options':   options,
+'required':  option.required
+} %}
+
+{% extends '@bolt/_base/_fieldset.twig' %}
+
+{% block fieldset_type 'select' %}
+{% block fieldset_widget 'fieldSelect' %}
+
+{% set fieldset_conf = {
+autocomplete: field.autocomplete|default(false)
+} %}
+
+{% block fieldset_label_text  labelkey %}
+{% block fieldset_label_info  option.info %}
+{% block fieldset_label_class 'col-sm-3' %}
+{% block fieldset_label_for   key %}
+
+{% block fieldset_controls %}
+    {% if field.sortable|default(false) %}
+        <script>
+            $(function () {
+                $(function () {
+                   // $('#{{ key }}').select2('destroy').select2Sortable({});
+                });
+            });
+        </script>
+    {% endif %}
+    {% from '@bolt/_buic/_select.twig' import buic_select %}
+
+    <div class="col-sm-9{{ (field.sortable|default(false)) ? ' sortable-select2-container' }}">
+        {{ buic_select(buic_opt_select) }}
+    </div>
+{% endblock fieldset_controls %}
