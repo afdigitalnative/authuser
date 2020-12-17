@@ -1,0 +1,31 @@
+{
+    "name": "marko/authuser",
+    "description": "new field type for getting auth users",
+    "type": "bolt-extension",
+    "keywords": [
+        "auth",
+        "user",
+		"bolt auth"
+    ],
+    "require": {
+        "bolt/bolt": "^3.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marko Ivanovic",
+            "email": "onlinewebdev@outlook.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Bolt\\Extension\\Marko\\AuthUser\\": "src"
+        }
+    },
+    "extra": {
+        "bolt-assets": "web",
+        "bolt-class": "Bolt\\Extension\\Marko\\AuthUser\\AuthUserExtension"
+    }
+}
