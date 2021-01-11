@@ -14,6 +14,8 @@ use Bolt\Extension\BoltAuth\Auth\Event\FormBuilderEvent;
 use Bolt\Extension\BoltAuth\Auth\Event\AuthProfileEvent;
 use Bolt\Extension\BoltAuth\Auth\Event\AuthEvents;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Bolt\Events\CronEvent;
+use Bolt\Events\CronEvents;
 
 /**
  * AuthUser extension class.
@@ -27,7 +29,8 @@ class AuthUserExtension extends SimpleExtension
      */
     protected function subscribe(EventDispatcherInterface $dispatcher)
     {
-        $dispatcher->addListener(AuthEvents::AUTH_PROFILE_REGISTER, [$this, 'onProfileSave']);        
+        $dispatcher->addListener(AuthEvents::AUTH_PROFILE_REGISTER, [$this, 'onProfileSave']); 
+		$dispatcher->addListener(CronEvents::CRON_INTERVAL, [$this, 'paymentJobCallbackMethod']);		
     }
 	
     /**
@@ -72,6 +75,25 @@ class AuthUserExtension extends SimpleExtension
 
 		$result = mail($to,$subject,$message,$headers);
     }
+	
+    /**
+     * Callback method for the custom cron job.
+     *
+     * @param CronEvent $event
+     */
+    public function paymentJobCallbackMethod(CronEvent $event)
+    {
+        // Add you logic here …
+		$myfile = fopen("newfile.txt", "w") or die("Unable to open file!");
+		$txt = "John Doe\n";
+		fwrite($myfile, $txt);
+		$txt = "Jane Doe\n";
+		fwrite($myfile, $txt);
+		fclose($myfile);
+ 
+        // Return a message to the console
+        $event->output->writeln("<comment>    Something happened!</comment>");
+    }	
 	
     /**
      * {@registerTwigFunctions}
