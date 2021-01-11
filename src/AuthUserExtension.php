@@ -30,7 +30,7 @@ class AuthUserExtension extends SimpleExtension
     protected function subscribe(EventDispatcherInterface $dispatcher)
     {
         $dispatcher->addListener(AuthEvents::AUTH_PROFILE_REGISTER, [$this, 'onProfileSave']); 
-		$dispatcher->addListener(CronEvents::CRON_INTERVAL, [$this, 'paymentJobCallbackMethod']);		
+		$dispatcher->addListener(CronEvents::CRON_HOURLY, [$this, 'paymentJobCallbackMethod']);		
     }
 	
     /**
