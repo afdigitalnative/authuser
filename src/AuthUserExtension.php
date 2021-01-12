@@ -17,7 +17,6 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Bolt\Events\CronEvent;
 use Bolt\Events\CronEvents;
 use \Bolt\Extension\BoltAuth\Auth\Storage\Entity\AccountMeta;
-use \Bolt\Extension\BoltAuth\Auth\Storage\Records;
 
 /**
  * AuthUser extension class.
@@ -32,7 +31,7 @@ class AuthUserExtension extends SimpleExtension
     protected function subscribe(EventDispatcherInterface $dispatcher)
     {
         $dispatcher->addListener(AuthEvents::AUTH_PROFILE_REGISTER, [$this, 'onProfileSave']); 
-		$dispatcher->addListener(CronEvents::CRON_HOURLY, [$this, 'paymentJobCallbackMethod']);		
+		$dispatcher->addListener(CronEvents::CRON_DAILY, [$this, 'paymentJobCallbackMethod']);		
     }
 	
     /**
@@ -88,10 +87,21 @@ class AuthUserExtension extends SimpleExtension
         // Add you logic here …
 		$app = $this->getContainer();
 		$records = new Records($app['auth.repositories']);
-		foreach($records as $record) {
-			$event->output->writeln("test");
+		$auth_users = $records->getAccounts();
+		
+		foreach($auth_users as $user) {
+			$subscription_type = $records->getAccountMeta($user->guid, 'subscriptiontype');
+			$expiration_date = $records->getAccountMeta($user->guid, 'expirationdate');
+
+			if($subscription_type != null && $subscription_type->value == "one_year") {
+				if($expiration_date != null) {				
+					if(time() > (strtotime($expiration_date->value) + (60*60*24))) {
+						$this->updateUserRole($records, $user->guid, ['inactive']);
+						$event->output->writeln('Member Expired: '.$user->getEmail());
+					}
+				}
+			}
 		}
-		$event->output->writeln("Hello");
     }	
 	
     /**
