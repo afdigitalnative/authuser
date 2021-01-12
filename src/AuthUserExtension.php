@@ -16,6 +16,8 @@ use Bolt\Extension\BoltAuth\Auth\Event\AuthEvents;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Bolt\Events\CronEvent;
 use Bolt\Events\CronEvents;
+use \Bolt\Extension\BoltAuth\Auth\Storage\Entity\AccountMeta;
+use \Bolt\Extension\BoltAuth\Auth\Storage\Records;
 
 /**
  * AuthUser extension class.
@@ -84,15 +86,12 @@ class AuthUserExtension extends SimpleExtension
     public function paymentJobCallbackMethod(CronEvent $event)
     {
         // Add you logic here …
-		$myfile = fopen("newfile.txt", "w") or die("Unable to open file!");
-		$txt = "John Doe\n";
-		fwrite($myfile, $txt);
-		$txt = "Jane Doe\n";
-		fwrite($myfile, $txt);
-		fclose($myfile);
- 
-        // Return a message to the console
-        $event->output->writeln("<comment>    Something happened!</comment>");
+		$app = $this->getContainer();
+		$records = new Records($app['auth.repositories']);
+		foreach($records as $record) {
+			$event->output->writeln("test");
+		}
+		$event->output->writeln("Hello");
     }	
 	
     /**
@@ -163,4 +162,37 @@ class AuthUserExtension extends SimpleExtension
             new AuthUserField(),
         ];
     }	
+	
+    /**
+     * @param Records $records
+     * @param string     $meta_field
+	 * @param string     $guid
+     * 
+     * @return void
+     */
+    public function updateUserMeta(Records $records, $guid, $meta_field, $meta_value)
+	{
+		$metaEntity = $records->getAccountMeta($guid, $meta_field);
+		if ($metaEntity === false) {
+			$metaEntity = new AccountMeta();
+		}
+		$metaEntity->setGuid($guid);
+		$metaEntity->setMeta($meta_field);
+		$metaEntity->setValue($meta_value);
+		$records->saveAccountMeta($metaEntity);		
+	}
+	
+    /**
+     * @param Records $records
+     * @param string     $role
+	 * @param string     $guid
+     *
+     * @return void
+     */
+	public function updateUserRole(Records $records, $guid, $role)
+	{
+		$user = $records->getAccountByGuid($guid);
+        $user->setRoles($role);
+		$records->saveAccount($user);		
+	}	
 }
